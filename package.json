@@ -30,6 +30,7 @@
     "worker-plugin": "^4.0.3"
   },
   "dependencies": {
+    "firebase": "^7.14.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1"
   }
