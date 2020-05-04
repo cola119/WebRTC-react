@@ -10,6 +10,8 @@
     "lint": "eslint '*/**/*.{js,jsx,ts,tsx}'"
   },
   "devDependencies": {
+    "@types/react": "^16.9.34",
+    "@types/react-dom": "^16.9.7",
     "@typescript-eslint/eslint-plugin": "^2.30.0",
     "@typescript-eslint/parser": "^2.30.0",
     "css-loader": "^3.5.3",
@@ -26,5 +28,9 @@
     "webpack-cli": "^3.3.11",
     "webpack-dev-server": "^3.10.3",
     "worker-plugin": "^4.0.3"
+  },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
   }
 }
