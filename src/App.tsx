@@ -1,5 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createRoomWihtOffer } from './firebase/rooms';
+import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
+import {
+  createRoomWihtOffer,
+  fetchRoomById,
+  setAnswer,
+} from './firebase/rooms';
 
 const DEFAULT_RTC_CONFIG = {
   iceServers: [
@@ -10,43 +14,67 @@ const DEFAULT_RTC_CONFIG = {
   iceCandidatePoolSize: 10,
 };
 
-const requestUserMedia = async (): Promise<MediaStream | null> => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
-    return stream;
-  } catch (e) {
-    console.error(e);
-    return null;
-  }
-};
-
 export const App: React.FC<{}> = () => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
   const peerVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string>();
+  const [existedRoomId, setExistedRoomId] = useState<string>();
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
   const [localStream, setLocalStream] = useState<MediaStream>();
-  const [iceCandidates, setIceCandidates] = useState<RTCIceCandidateInit[]>([]);
+  const [isIceCreated, setIsIceCreated] = useState(false);
 
-  const createRoom = async (): Promise<void> => {
-    if (!localStream) {
-      console.error('localStream not found');
-      return;
-    }
+  const connect = async (): Promise<void> => {
+    if (!localStream) return console.error('localStream not found');
+    if (!peerConnection) return console.error('peerConnection not found');
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+    });
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+  };
+
+  const handleRoomIdInput = (e: ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value;
+    setExistedRoomId(value);
+  };
+  const joinRoom = async (): Promise<void> => {
+    if (!existedRoomId || !peerConnection) return;
+    const room = await fetchRoomById(existedRoomId);
+    if (!room) return console.error('room not found');
+    setRoomId(existedRoomId);
+    peerConnection.setRemoteDescription(room.offer);
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+  };
+
+  useEffect(() => {
     const _peerConnection = new RTCPeerConnection(DEFAULT_RTC_CONFIG);
     setPeerConnection(_peerConnection);
-    localStream.getTracks().forEach((track) => {
-      _peerConnection.addTrack(track, localStream);
+    _peerConnection.addEventListener('icecandidate', async (e) => {
+      console.log('icecandidate', e.candidate);
+      if (e.candidate == null) setIsIceCreated(true);
     });
-    const offer = await _peerConnection.createOffer();
-    await _peerConnection.setLocalDescription(offer);
-    const _roomId = await createRoomWihtOffer(offer);
-    setRoomId(_roomId);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isIceCreated) return;
+    const sendOffer = async (): Promise<void> => {
+      if (!peerConnection) return console.error('peerConnection not found');
+      const offer = peerConnection.localDescription!!;
+      const _roomId = await createRoomWihtOffer(offer);
+      setRoomId(_roomId);
+      setIsIceCreated(false);
+    };
+    const sendAnswer = async (): Promise<void> => {
+      if (!peerConnection) return console.error('peerConnection not found');
+      const answer = peerConnection.localDescription;
+      await setAnswer(existedRoomId!!, answer!!);
+      setIsIceCreated(false);
+    };
+    if (!existedRoomId) sendOffer();
+    else if (existedRoomId) sendAnswer();
+  }, [isIceCreated]);
 
   useEffect(() => {
     if (!myVideoRef.current) return;
@@ -59,22 +87,12 @@ export const App: React.FC<{}> = () => {
     init();
   }, [myVideoRef.current]);
 
-  useEffect(() => {
-    if (!peerConnection) return;
-    peerConnection.addEventListener('icecandidate', (e) => {
-      console.log('icecandidate', e.candidate);
-      if (e.candidate == null) return;
-      const json = e.candidate.toJSON();
-      setIceCandidates((p) => [...p, json]);
-    });
-  }, [peerConnection]);
-
   return (
     <div>
       {roomId ? (
         <div>Current room id is {roomId}</div>
       ) : (
-        <button onClick={createRoom}>Create Room</button>
+        <button onClick={connect}>Create Room</button>
       )}
       <div>
         <video
@@ -92,6 +110,31 @@ export const App: React.FC<{}> = () => {
           style={{ width: '300px', border: '1px solid #000000' }}
         />
       </div>
+      <br />
+      {!roomId && (
+        <div>
+          <div>Room id you want to join</div>
+          <input
+            type="text"
+            onChange={handleRoomIdInput}
+            value={existedRoomId || ''}
+          />
+          {existedRoomId && <button onClick={joinRoom}>join</button>}
+        </div>
+      )}
     </div>
   );
+};
+
+const requestUserMedia = async (): Promise<MediaStream | null> => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    return stream;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 };
