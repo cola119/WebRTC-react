@@ -19,7 +19,8 @@ export const Reciever: React.FC<{}> = () => {
     if (!roomId || !peerConnection || !localStream) return;
     const room = await fetchRoomById(roomId);
     if (!room) return console.error('room not found');
-    peerConnection.setRemoteDescription(room.offer);
+    const offer = new RTCSessionDescription(room.offer);
+    peerConnection.setRemoteDescription(offer);
     localStream.getTracks().forEach((track) => {
       peerConnection.addTrack(track, localStream);
     });
@@ -34,6 +35,12 @@ export const Reciever: React.FC<{}> = () => {
       console.log('icecandidate', e.candidate);
       if (e.candidate == null) setIsIceCreated(true);
     });
+    _peerConnection.ontrack = (e): void => {
+      console.log('ontrack', e);
+      const stream = e.streams[0];
+      if (!peerVideoRef.current) return;
+      peerVideoRef.current.srcObject = stream;
+    };
   }, []);
 
   useEffect(() => {

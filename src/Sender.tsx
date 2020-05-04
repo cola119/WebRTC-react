@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createRoomWihtOffer } from './firebase/rooms';
 import { DEFAULT_RTC_CONFIG, requestUserMedia } from './utils';
+import { roomsRef } from './firebase';
 
 export const Sender: React.FC<{}> = () => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -21,6 +22,16 @@ export const Sender: React.FC<{}> = () => {
     await peerConnection.setLocalDescription(offer);
   };
 
+  const listenAnswer = (roomId: string): void => {
+    roomsRef.doc(roomId).onSnapshot(async (snapshot) => {
+      const room = snapshot.data() as Room;
+      if (peerConnection && room.answer) {
+        const answer = new RTCSessionDescription(room.answer);
+        await peerConnection.setRemoteDescription(answer);
+      }
+    });
+  };
+
   useEffect(() => {
     const _peerConnection = new RTCPeerConnection(DEFAULT_RTC_CONFIG);
     setPeerConnection(_peerConnection);
@@ -28,6 +39,12 @@ export const Sender: React.FC<{}> = () => {
       console.log('icecandidate', e.candidate);
       if (e.candidate == null) setIsIceCreated(true);
     });
+    _peerConnection.ontrack = (e): void => {
+      console.log('ontrack', e);
+      const stream = e.streams[0];
+      if (!peerVideoRef.current) return;
+      peerVideoRef.current.srcObject = stream;
+    };
   }, []);
 
   useEffect(() => {
@@ -37,6 +54,7 @@ export const Sender: React.FC<{}> = () => {
       const offer = peerConnection.localDescription!!;
       const _roomId = await createRoomWihtOffer(offer);
       setRoomId(_roomId);
+      listenAnswer(_roomId);
     };
     sendOffer();
   }, [isIceCreated]);
