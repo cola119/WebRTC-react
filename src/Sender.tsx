@@ -25,8 +25,10 @@ export const Sender: React.FC<{}> = () => {
   const listenAnswer = (roomId: string): void => {
     roomsRef.doc(roomId).onSnapshot(async (snapshot) => {
       const room = snapshot.data() as Room;
+      console.log('got answer', room.answer);
       if (peerConnection && room.answer) {
         const answer = new RTCSessionDescription(room.answer);
+        console.log('setRemoteDescription', room.answer);
         await peerConnection.setRemoteDescription(answer);
       }
     });
@@ -44,6 +46,9 @@ export const Sender: React.FC<{}> = () => {
       const stream = e.streams[0];
       if (!peerVideoRef.current) return;
       peerVideoRef.current.srcObject = stream;
+    };
+    _peerConnection.onicecandidateerror = (e): void => {
+      console.log('onicecandidateerror', e);
     };
   }, []);
 

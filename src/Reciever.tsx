@@ -41,6 +41,9 @@ export const Reciever: React.FC<{}> = () => {
       if (!peerVideoRef.current) return;
       peerVideoRef.current.srcObject = stream;
     };
+    _peerConnection.onicecandidateerror = (e): void => {
+      console.log('onicecandidateerror', e);
+    };
   }, []);
 
   useEffect(() => {

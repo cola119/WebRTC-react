@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sender } from './Sender';
 import { Reciever } from './Reciever';
+import { DEFAULT_RTC_CONFIG } from './utils';
 
 export const App: React.FC<{}> = () => {
   const [isSender, setIsSender] = useState<boolean>(false);
@@ -8,6 +9,9 @@ export const App: React.FC<{}> = () => {
 
   return (
     <div>
+      <div>
+        current stun server is {DEFAULT_RTC_CONFIG.iceServers[0].urls[0]}
+      </div>
       {![isSender, isReciever].includes(true) && (
         <div>
           <button onClick={(): void => setIsSender(true)}>Organizer</button>
