@@ -79,6 +79,7 @@ export const Sender: React.FC<{}> = () => {
       )}
       <div>
         <video
+          playsInline
           autoPlay
           controls
           muted
@@ -86,6 +87,7 @@ export const Sender: React.FC<{}> = () => {
           style={{ width: '300px', border: '1px solid #000000' }}
         />
         <video
+          playsInline
           autoPlay
           controls
           muted

@@ -81,6 +81,7 @@ export const Reciever: React.FC<{}> = () => {
       )}
       <div>
         <video
+          playsInline
           autoPlay
           controls
           muted
@@ -88,6 +89,7 @@ export const Reciever: React.FC<{}> = () => {
           style={{ width: '300px', border: '1px solid #000000' }}
         />
         <video
+          playsInline
           autoPlay
           controls
           muted
