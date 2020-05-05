@@ -1,25 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Sender } from './components/Sender';
-import { Reciever } from './components/Reciever';
-import { DEFAULT_RTC_CONFIG } from './utils';
+import { Switch, Route } from 'react-router-dom';
+import { Home } from './Home';
 
 export const App: React.FC<{}> = () => {
-  const [isSender, setIsSender] = useState<boolean>(false);
-  const [isReciever, setIsReciever] = useState<boolean>(false);
-
   return (
-    <div>
-      <div>
-        current stun server is {DEFAULT_RTC_CONFIG.iceServers[0].urls[0]}
-      </div>
-      {![isSender, isReciever].includes(true) && (
-        <div>
-          <button onClick={(): void => setIsSender(true)}>Organizer</button>
-          <button onClick={(): void => setIsReciever(true)}>Join room</button>
-        </div>
-      )}
-      {isSender && <Sender />}
-      {isReciever && <Reciever />}
-    </div>
+    <Switch>
+      <Route path="/rooms/add">
+        <Sender />
+      </Route>
+      <Route exact path="/">
+        <Home />
+      </Route>
+    </Switch>
   );
 };
