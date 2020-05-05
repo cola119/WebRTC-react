@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
-import { fetchRoomById, setAnswer } from './firebase/rooms';
-import { DEFAULT_RTC_CONFIG, requestUserMedia } from './utils';
+import { fetchRoomById, setAnswer } from '../firebase/rooms';
+import { DEFAULT_RTC_CONFIG, requestUserMedia } from '../utils';
 
 export const Reciever: React.FC<{}> = () => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -43,6 +43,12 @@ export const Reciever: React.FC<{}> = () => {
     };
     _peerConnection.onicecandidateerror = (e): void => {
       console.log('onicecandidateerror', e);
+    };
+    _peerConnection.oniceconnectionstatechange = (): void => {
+      console.log(
+        'oniceconnectionstatechange',
+        _peerConnection.iceConnectionState,
+      );
     };
   }, []);
 

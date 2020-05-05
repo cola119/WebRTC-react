@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Sender } from './Sender';
-import { Reciever } from './Reciever';
+import { Sender } from './components/Sender';
+import { Reciever } from './components/Reciever';
 import { DEFAULT_RTC_CONFIG } from './utils';
 
 export const App: React.FC<{}> = () => {

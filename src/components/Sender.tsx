@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createRoomWihtOffer } from './firebase/rooms';
-import { DEFAULT_RTC_CONFIG, requestUserMedia } from './utils';
-import { roomsRef } from './firebase';
+import { createRoomWihtOffer } from '../firebase/rooms';
+import { DEFAULT_RTC_CONFIG, requestUserMedia } from '../utils';
+import { roomsRef } from '../firebase';
 
 export const Sender: React.FC<{}> = () => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -49,6 +49,12 @@ export const Sender: React.FC<{}> = () => {
     };
     _peerConnection.onicecandidateerror = (e): void => {
       console.log('onicecandidateerror', e);
+    };
+    _peerConnection.oniceconnectionstatechange = (): void => {
+      console.log(
+        'oniceconnectionstatechange',
+        _peerConnection.iceConnectionState,
+      );
     };
   }, []);
 
