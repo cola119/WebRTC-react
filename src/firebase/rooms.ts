@@ -1,4 +1,12 @@
+import * as firebase from 'firebase/app';
 import { roomsRef } from '.';
+
+export const createRoom = async (): Promise<string> => {
+  const ref = await roomsRef.add({
+    createdDate: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+  return ref.id;
+};
 
 export const createRoomWihtOffer = async (
   offer: RTCSessionDescriptionInit,

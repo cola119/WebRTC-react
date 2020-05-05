@@ -1,0 +1,3 @@
+type RouterParams = {
+  roomId: string;
+};
