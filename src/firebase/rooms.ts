@@ -2,6 +2,7 @@ import * as firebase from 'firebase/app';
 import { roomsRef } from '.';
 
 export const createRoom = async (): Promise<string> => {
+  console.log('createRoom');
   const ref = await roomsRef.add({
     createdDate: firebase.firestore.FieldValue.serverTimestamp(),
   });
@@ -11,6 +12,7 @@ export const createRoom = async (): Promise<string> => {
 export const createRoomWihtOffer = async (
   offer: RTCSessionDescriptionInit,
 ): Promise<string> => {
+  console.log('createRoomWihtOffer');
   const offerObj: Room['offer'] = {
     sdp: offer.sdp,
     type: offer.type,
@@ -23,6 +25,7 @@ export const setOffer = async (
   roomId: string,
   offer: RTCSessionDescriptionInit,
 ): Promise<void> => {
+  console.log('setOffer');
   const offerObj: Room['offer'] = {
     sdp: offer.sdp,
     type: offer.type,
@@ -34,6 +37,7 @@ export const setAnswer = async (
   roomId: string,
   answer: RTCSessionDescriptionInit,
 ): Promise<void> => {
+  console.log('setAnswer');
   const answerObj: Room['answer'] = {
     sdp: answer.sdp,
     type: answer.type,
@@ -42,6 +46,7 @@ export const setAnswer = async (
 };
 
 export const fetchRoomById = async (id: string): Promise<Room | undefined> => {
+  console.log('fetchRoomById');
   const snapshot = await roomsRef.doc(id).get();
   const room = snapshot.data() as Room | undefined;
   return room;

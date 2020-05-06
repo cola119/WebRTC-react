@@ -88,6 +88,7 @@ export const Sender: React.FC<Props> = ({ roomId }) => {
   return (
     <div>
       <div>Current room id is {roomId}</div>
+      {!isIceCreated && <div>Creating connection...</div>}
       <div>
         <video
           playsInline

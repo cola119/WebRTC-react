@@ -4,9 +4,10 @@ import { DEFAULT_RTC_CONFIG, requestUserMedia } from '../utils';
 
 type Props = {
   roomId: string;
+  reConnection?: boolean;
 };
 
-export const Reciever: React.FC<Props> = ({ roomId }) => {
+export const Reciever: React.FC<Props> = ({ roomId, reConnection = false }) => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
   const peerVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -54,7 +55,9 @@ export const Reciever: React.FC<Props> = ({ roomId }) => {
     const sendAnswer = async (): Promise<void> => {
       if (!peerConnection) return console.error('peerConnection not found');
       const answer = peerConnection.localDescription;
-      await setAnswer(roomId!!, answer!!);
+      if (!reConnection) {
+        await setAnswer(roomId!!, answer!!);
+      }
     };
     sendAnswer();
   }, [isIceCreated]);
@@ -64,6 +67,7 @@ export const Reciever: React.FC<Props> = ({ roomId }) => {
     const joinRoom = async (): Promise<void> => {
       const room = await fetchRoomById(roomId);
       if (!room) return console.error('room not found');
+      if (!room.offer) return console.error('offer not found');
       const offer = new RTCSessionDescription(room.offer);
       peerConnection.setRemoteDescription(offer);
       localStream.getTracks().forEach((track) => {
