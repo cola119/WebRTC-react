@@ -1,4 +1,4 @@
 type Room = {
-  offer: RTCSessionDescriptionInit;
-  answer: RTCSessionDescriptionInit;
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
 };

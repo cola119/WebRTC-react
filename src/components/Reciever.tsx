@@ -1,32 +1,18 @@
-import React, { useEffect, useRef, useState, ChangeEvent } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { fetchRoomById, setAnswer } from '../firebase/rooms';
 import { DEFAULT_RTC_CONFIG, requestUserMedia } from '../utils';
 
-export const Reciever: React.FC<{}> = () => {
+type Props = {
+  roomId: string;
+};
+
+export const Reciever: React.FC<Props> = ({ roomId }) => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
   const peerVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [roomId, setRoomId] = useState<string>();
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [isIceCreated, setIsIceCreated] = useState(false);
-
-  const handleRoomIdInput = (e: ChangeEvent<HTMLInputElement>): void => {
-    const value = e.target.value;
-    setRoomId(value);
-  };
-  const joinRoom = async (): Promise<void> => {
-    if (!roomId || !peerConnection || !localStream) return;
-    const room = await fetchRoomById(roomId);
-    if (!room) return console.error('room not found');
-    const offer = new RTCSessionDescription(room.offer);
-    peerConnection.setRemoteDescription(offer);
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-    const answer = await peerConnection.createAnswer();
-    await peerConnection.setLocalDescription(answer);
-  };
 
   useEffect(() => {
     const _peerConnection = new RTCPeerConnection(DEFAULT_RTC_CONFIG);
@@ -73,21 +59,25 @@ export const Reciever: React.FC<{}> = () => {
     init();
   }, [myVideoRef.current]);
 
+  useEffect(() => {
+    if (!localStream || !peerConnection) return;
+    const joinRoom = async (): Promise<void> => {
+      const room = await fetchRoomById(roomId);
+      if (!room) return console.error('room not found');
+      const offer = new RTCSessionDescription(room.offer);
+      peerConnection.setRemoteDescription(offer);
+      localStream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, localStream);
+      });
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+    };
+    joinRoom();
+  }, [localStream, peerConnection]);
+
   return (
     <div>
-      {isIceCreated ? (
-        <div>Current room id is {roomId}</div>
-      ) : (
-        <div>
-          <div>Room id you want to join</div>
-          <input
-            type="text"
-            onChange={handleRoomIdInput}
-            value={roomId || ''}
-          />
-          {roomId && <button onClick={joinRoom}>join</button>}
-        </div>
-      )}
+      <div>Current room id is {roomId}</div>
       <div>
         <video
           playsInline

@@ -1,26 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createRoomWihtOffer } from '../firebase/rooms';
+import { setOffer } from '../firebase/rooms';
 import { DEFAULT_RTC_CONFIG, requestUserMedia } from '../utils';
 import { roomsRef } from '../firebase';
 
-export const Sender: React.FC<{}> = () => {
+type Props = {
+  roomId: string;
+};
+
+export const Sender: React.FC<Props> = ({ roomId }) => {
   const myVideoRef = useRef<HTMLVideoElement | null>(null);
   const peerVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [roomId, setRoomId] = useState<string>();
   const [peerConnection, setPeerConnection] = useState<RTCPeerConnection>();
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [isIceCreated, setIsIceCreated] = useState(false);
-
-  const connect = async (): Promise<void> => {
-    if (!localStream) return console.error('localStream not found');
-    if (!peerConnection) return console.error('peerConnection not found');
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer);
-  };
 
   const listenAnswer = (roomId: string): void => {
     roomsRef.doc(roomId).onSnapshot(async (snapshot) => {
@@ -63,9 +56,8 @@ export const Sender: React.FC<{}> = () => {
     const sendOffer = async (): Promise<void> => {
       if (!peerConnection) return console.error('peerConnection not found');
       const offer = peerConnection.localDescription!!;
-      const _roomId = await createRoomWihtOffer(offer);
-      setRoomId(_roomId);
-      listenAnswer(_roomId);
+      await setOffer(roomId, offer);
+      listenAnswer(roomId);
     };
     sendOffer();
   }, [isIceCreated]);
@@ -81,13 +73,21 @@ export const Sender: React.FC<{}> = () => {
     init();
   }, [myVideoRef.current]);
 
+  useEffect(() => {
+    if (!localStream || !peerConnection) return;
+    const init = async (): Promise<void> => {
+      localStream.getTracks().forEach((track) => {
+        peerConnection.addTrack(track, localStream);
+      });
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+    };
+    init();
+  }, [localStream, peerConnection]);
+
   return (
     <div>
-      {roomId ? (
-        <div>Current room id is {roomId}</div>
-      ) : (
-        <button onClick={connect}>Create Room</button>
-      )}
+      <div>Current room id is {roomId}</div>
       <div>
         <video
           playsInline
