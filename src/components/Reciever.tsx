@@ -14,7 +14,7 @@ export const Reciever: React.FC<Props> = ({ roomId }) => {
   const [localStream, setLocalStream] = useState<MediaStream>();
   const [isIceCreated, setIsIceCreated] = useState(false);
 
-  useEffect(() => {
+  const createConnection = (): void => {
     const _peerConnection = new RTCPeerConnection(DEFAULT_RTC_CONFIG);
     setPeerConnection(_peerConnection);
     _peerConnection.addEventListener('icecandidate', async (e) => {
@@ -36,6 +36,17 @@ export const Reciever: React.FC<Props> = ({ roomId }) => {
         _peerConnection.iceConnectionState,
       );
     };
+  };
+
+  useEffect(() => {
+    const init = async (): Promise<void> => {
+      createConnection();
+      const stream = await requestUserMedia();
+      if (!stream) return; // TODO
+      myVideoRef.current!.srcObject = stream;
+      setLocalStream(stream);
+    };
+    init();
   }, []);
 
   useEffect(() => {
@@ -47,17 +58,6 @@ export const Reciever: React.FC<Props> = ({ roomId }) => {
     };
     sendAnswer();
   }, [isIceCreated]);
-
-  useEffect(() => {
-    if (!myVideoRef.current) return;
-    const init = async (): Promise<void> => {
-      const stream = await requestUserMedia();
-      if (!stream) return; // TODO
-      myVideoRef.current!.srcObject = stream;
-      setLocalStream(stream);
-    };
-    init();
-  }, [myVideoRef.current]);
 
   useEffect(() => {
     if (!localStream || !peerConnection) return;
