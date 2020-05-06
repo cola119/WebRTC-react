@@ -4,6 +4,11 @@ const HTMLPlugin = require('html-webpack-plugin');
 const WorkerPlugin = require('worker-plugin');
 
 module.exports = {
+  output: {
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'main.js',
+    publicPath: '/',
+  },
   module: {
     rules: [
       {
@@ -32,6 +37,7 @@ module.exports = {
   ],
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
+    historyApiFallback: true,
     inline: true,
     hot: true,
   },
